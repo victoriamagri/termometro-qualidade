@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Termômetro da Qualidade</title>
+<style>
+/* Layout: faixa de marca → termômetro geral → 4 trilhas em grade → saúde dos agentes → ressalvas. Tema claro fixo (padrão da Victoria). */
+:root{
+  color-scheme: light;
+  --navy:#080E32; --azul:#0055FF; --azul-800:#193CB8; --tint:#F0F2FA; --canvas:#EAEEF6;
+  --coral:#FC6058; --texto2:#6B6E84; --borda:#E6E7EA; --branco:#FFFFFF;
+  --ok:#14804A; --ok-bg:#E5F4EC; --at:#B26A00; --at-bg:#FDF1DC; --cr:#C8102E; --cr-bg:#FCE6E8;
+  --info:#193CB8; --info-bg:#F0F2FA; --nd:#8A8C9E; --nd-bg:#F2F3F5;
+  --font:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  --r:10px;
+}
+body{background:var(--canvas);color:var(--navy);font-family:var(--font);font-size:15px;line-height:1.45}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 40px}
+.marca{background:var(--navy);color:var(--branco)}
+.marca .wrap{padding-block:10px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.marca b{color:var(--coral)}
+header.topo{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding-block:24px 18px}
+h1{font-size:28px;margin:0;line-height:1.15;text-wrap:balance}
+.sub{color:var(--texto2);margin:4px 0 0}
+label.sem{font-size:12px;color:var(--texto2);display:flex;flex-direction:column;gap:4px}
+select{font:inherit;font-size:14px;padding:7px 10px;border:1px solid var(--borda);border-radius:8px;background:var(--branco);color:var(--navy)}
+select:focus-visible{outline:2px solid var(--azul);outline-offset:2px}
+
+.geral{background:var(--branco);border-radius:var(--r);border:1px solid var(--borda);padding:22px;display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center}
+.geral h2{margin:0 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--texto2)}
+.geral .frase{font-size:19px;line-height:1.4;margin:0;max-width:62ch;text-wrap:pretty}
+.escala{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--texto2)}
+.escala span{display:inline-flex;align-items:center;gap:6px}
+.escala i{width:10px;height:10px;border-radius:50%;display:inline-block}
+
+/* termômetro desenhado: tubo + bulbo, preenchimento por status */
+.termo{--cor:var(--nd);--nivel:8%;position:relative;width:26px;height:120px;flex:none}
+.termo .tubo{position:absolute;left:7px;top:0;width:12px;height:100px;border-radius:6px;background:var(--tint);border:1px solid var(--borda);overflow:hidden}
+.termo .tubo::after{content:"";position:absolute;left:0;right:0;bottom:0;height:var(--nivel);background:var(--cor);transition:height .6s ease}
+.termo .bulbo{position:absolute;left:0;bottom:0;width:26px;height:26px;border-radius:50%;background:var(--cor);border:3px solid var(--branco);box-shadow:0 0 0 1px var(--borda)}
+.termo.sm{width:18px;height:64px}
+.termo.sm .tubo{left:5px;width:8px;height:52px}
+.termo.sm .bulbo{width:18px;height:18px;border-width:2px}
+@media (prefers-reduced-motion:reduce){.termo .tubo::after{transition:none}}
+
+.s-ok{--cor:var(--ok);--nivel:28%}
+.s-atencao{--cor:var(--at);--nivel:58%}
+.s-critico{--cor:var(--cr);--nivel:92%}
+.s-info{--cor:var(--info);--nivel:0%}
+.s-sem_dado{--cor:var(--nd);--nivel:0%}
+
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.p-ok{color:var(--ok);background:var(--ok-bg)} .p-atencao{color:var(--at);background:var(--at-bg)}
+.p-critico{color:var(--cr);background:var(--cr-bg)} .p-info{color:var(--info);background:var(--info-bg)}
+.p-sem_dado{color:var(--nd);background:var(--nd-bg)}
+
+h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--texto2);margin:30px 0 12px}
+.trilhas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.trilha{background:var(--branco);border:1px solid var(--borda);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.trilha .cab{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.trilha .k{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--texto2)}
+.trilha h3{margin:0;font-size:18px}
+.trilha .frase{margin:0;color:var(--navy)}
+.ind{border-top:1px solid var(--borda);padding-top:10px;display:grid;grid-template-columns:1fr auto;gap:2px 12px}
+.ind .nome{font-weight:600;font-size:14px}
+.ind .val{font-size:22px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ind .val.c-ok{color:var(--ok)} .ind .val.c-atencao{color:var(--at)} .ind .val.c-critico{color:var(--cr)} .ind .val.c-info,.ind .val.c-sem_dado{color:var(--navy)}
+.ind .ext{grid-column:1/-1;font-size:13px;color:var(--navy);text-wrap:pretty}
+.ind .meta{grid-column:1/-1;font-size:12px;color:var(--texto2);display:flex;flex-wrap:wrap;gap:4px 14px}
+.ind .meta b{font-weight:600;color:var(--texto2)}
+
+.tab{background:var(--branco);border:1px solid var(--borda);border-radius:var(--r);overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--borda);vertical-align:top}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--texto2);background:var(--tint)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.ressalvas{background:var(--branco);border:1px solid var(--borda);border-radius:var(--r);padding:14px 18px 14px 34px;margin:0}
+.ressalvas li{margin:4px 0}
+.rodape{margin-top:22px;font-size:12px;color:var(--texto2)}
+
+.vazio{background:var(--branco);border:1px dashed var(--borda);border-radius:var(--r);padding:28px;text-align:center;color:var(--texto2)}
+@media (max-width:760px){
+  .trilhas{grid-template-columns:minmax(0,1fr)}
+  .geral{grid-template-columns:minmax(0,1fr);justify-items:start}
+  h1{font-size:23px}
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0}
+td.st{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:700;text-align:center}
+td.st-ok{color:var(--ok);background:var(--ok-bg)} td.st-atencao{color:var(--at);background:var(--at-bg)} td.st-critico{color:var(--cr);background:var(--cr-bg)}
+</style>
+</head>
+<body>
+<div class="marca"><div class="wrap"><span><b>●</b> Seazone · Franquias · Qualidade</span><span id="atualizado">Atualização semanal, toda quinta</span></div></div>
+
+<div class="wrap">
+  <header class="topo">
+    <div>
+      <h1>Termômetro da Qualidade</h1>
+      <p class="sub" id="periodo">Como estão as quatro trilhas da Qualidade na semana.</p>
+    </div>
+    <label class="sem" for="semana">Semana
+      <select id="semana" disabled><option>Carregando…</option></select>
+    </label>
+  </header>
+
+  <main id="conteudo">
+    <div class="vazio" id="estado">Carregando os números da semana…</div>
+  </main>
+</div>
+<script src="dados.js"></script>
+<script>
+const ROTULO = {ok:"Saudável", atencao:"Atenção", critico:"Crítico", info:"Acompanhar", sem_dado:"Sem dado"};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const st = s => ROTULO[s] ? s : "sem_dado";
+const pill = s => `<span class="pill p-${st(s)}">${ROTULO[st(s)]}</span>`;
+const termo = (s, sm) => `<div class="termo ${sm ? "sm" : ""} s-${st(s)}" role="img" aria-label="${ROTULO[st(s)]}"><div class="tubo"></div><div class="bulbo"></div></div>`;
+const dataBR = iso => { if (!iso) return "—"; const [a,m,d] = String(iso).slice(0,10).split("-"); return `${d}/${m}/${a}`; };
+
+function render(d) {
+  $("#periodo").textContent = `Semana de ${dataBR(d.periodo?.inicio)} a ${dataBR(d.periodo?.fim)}. Comparação com a semana anterior.`;
+  $("#atualizado").textContent = d.gerado_em ? `Atualizado em ${dataBR(d.gerado_em)}` : "Atualização semanal";
+
+  const trilhas = (d.trilhas || []).map(t => {
+    const inds = (t.indicadores || []).map(i => `
+      <div class="ind">
+        <div class="nome">${esc(i.nome)}</div>
+        <div class="val c-${st(i.status)}">${esc(i.valor_txt ?? "—")}</div>
+        ${i.explicacao ? `<div class="ext">${esc(i.explicacao)}</div>` : ""}
+        <div class="meta">
+          ${i.anterior_txt ? `<span><b>Semana anterior:</b> ${esc(i.anterior_txt)}</span>` : ""}
+          ${i.faixa ? `<span><b>Faixa:</b> ${esc(i.faixa)}</span>` : ""}
+          ${i.fonte ? `<span><b>Fonte:</b> ${esc(i.fonte)}</span>` : ""}
+        </div>
+      </div>`).join("");
+    return `
+      <section class="trilha" aria-label="${esc(t.nome)}">
+        <div class="cab">${termo(t.status, true)}<div><div class="k">${esc(t.k || "")}</div><h3>${esc(t.nome)}</h3></div>${pill(t.status)}</div>
+        ${t.frase ? `<p class="frase">${esc(t.frase)}</p>` : ""}
+        ${inds}
+      </section>`;
+  }).join("");
+
+  const saude = (d.saude || []).map(a => `
+    <tr><td><b>${esc(a.id)}</b> ${esc(a.nome)}</td><td>${esc(a.processo || "")}</td>
+    <td class="num">${esc(a.ultimo_txt || "—")}</td><td>${pill(a.status)}</td><td>${esc(a.nota || "")}</td></tr>`).join("");
+
+  const s = window.DADOS.serie;
+  const serie = s ? `<h2 class="sec">Evolução desde 09/09</h2>
+    <div class="tab"><table><thead><tr><th>Indicador</th>${s.semanas.map(w => `<th>${esc(w)}</th>`).join("")}</tr></thead>
+    <tbody>${s.linhas.map(l => `<tr><td>${esc(l.nome)}</td>${l.valores.map((v, i) => `<td class="st st-${st(l.status[i])}" title="${ROTULO[st(l.status[i])]}">${esc(v)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>` : "";
+
+  const ressalvas = (d.ressalvas || []).map(r => `<li>${esc(r)}</li>`).join("");
+
+  $("#conteudo").innerHTML = `
+    <section class="geral" aria-label="Termômetro geral">
+      ${termo(d.geral?.status)}
+      <div>
+        <h2>Termômetro geral ${pill(d.geral?.status)}</h2>
+        <p class="frase">${esc(d.geral?.frase || "")}</p>
+        <div class="escala">
+          <span><i style="background:var(--ok)"></i>Saudável: dentro da faixa</span>
+          <span><i style="background:var(--at)"></i>Atenção: perto do limite</span>
+          <span><i style="background:var(--cr)"></i>Crítico: fora da faixa</span>
+          <span><i style="background:var(--info)"></i>Acompanhar: número sem faixa</span>
+        </div>
+      </div>
+    </section>
+    <h2 class="sec">As quatro trilhas</h2>
+    <div class="trilhas">${trilhas}</div>
+    ${serie}
+    ${saude ? `<h2 class="sec">Saúde das automações</h2>
+    <div class="tab"><table><thead><tr><th>Agente</th><th>Processo</th><th>Último registro</th><th>Situação</th><th>Observação</th></tr></thead><tbody>${saude}</tbody></table></div>` : ""}
+    ${ressalvas ? `<h2 class="sec">Como ler e o que ainda falta</h2><ul class="ressalvas">${ressalvas}</ul>` : ""}
+    <p class="rodape">Base: arquitetura de processos da Qualidade (rascunho v6, 19/10/2026). As faixas são provisórias e podem mudar.</p>`;
+}
+
+const semanas = (window.DADOS && window.DADOS.semanas) || [];
+const sel = $("#semana");
+if (!semanas.length) {
+  $("#conteudo").innerHTML = `<div class="vazio">Ainda não há semana registrada.</div>`;
+} else {
+  sel.innerHTML = semanas.map((w, i) => `<option value="${i}">${dataBR(w.periodo.inicio)} a ${dataBR(w.periodo.fim)}</option>`).join("");
+  sel.disabled = semanas.length < 2;
+  sel.addEventListener("change", e => render(semanas[+e.target.value]));
+  render(semanas[0]);
+}
+</script>
+</body>
+</html>
