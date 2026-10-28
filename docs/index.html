@@ -71,6 +71,16 @@ h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--
 .ind .ext{grid-column:1/-1;font-size:13px;color:var(--navy);text-wrap:pretty}
 .ind .meta{grid-column:1/-1;font-size:12px;color:var(--texto2);display:flex;flex-wrap:wrap;gap:4px 14px}
 .ind .meta b{font-weight:600;color:var(--texto2)}
+/* próxima ação: todo crítico (e agente sem dado) precisa de dono e prazo; sem isso, aparece o aviso em vermelho */
+.acao{grid-column:1/-1;font-size:13px;background:var(--tint);border-left:3px solid var(--azul);border-radius:4px;padding:6px 10px;margin-top:4px;text-wrap:pretty}
+.acao b{color:var(--azul-800)}
+.acao.falta{background:var(--cr-bg);border-left-color:var(--cr);color:var(--cr)}
+.acao.falta b{color:var(--cr)}
+td .acao{margin-top:6px}
+.foco{margin-top:14px;background:var(--tint);border-radius:8px;padding:10px 14px}
+.foco h3{margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--azul-800)}
+.foco ul{margin:0;padding-left:18px}
+.foco li{margin:2px 0}
 
 .tab{background:var(--branco);border:1px solid var(--borda);border-radius:var(--r);overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
@@ -121,6 +131,10 @@ const st = s => ROTULO[s] ? s : "sem_dado";
 const pill = s => `<span class="pill p-${st(s)}">${ROTULO[st(s)]}</span>`;
 const termo = (s, sm) => `<div class="termo ${sm ? "sm" : ""} s-${st(s)}" role="img" aria-label="${ROTULO[st(s)]}"><div class="tubo"></div><div class="bulbo"></div></div>`;
 const dataBR = iso => { if (!iso) return "—"; const [a,m,d] = String(iso).slice(0,10).split("-"); return `${d}/${m}/${a}`; };
+const diaMes = iso => dataBR(iso).slice(0, 5);
+// Linha "Próxima ação". exige: crítico (indicador) ou atenção/sem dado (agente) sem ação vira aviso.
+const acao = (a, exige) => a ? `<div class="acao"><b>Próxima ação:</b> ${esc(a.texto)} <b>${esc(a.dono)} · até ${diaMes(a.prazo)}</b></div>`
+  : exige ? `<div class="acao falta"><b>Próxima ação:</b> sem dono e sem prazo definidos.</div>` : "";
 
 function render(d) {
   $("#periodo").textContent = `Semana de ${dataBR(d.periodo?.inicio)} a ${dataBR(d.periodo?.fim)}. Comparação com a semana anterior.`;
@@ -137,6 +151,7 @@ function render(d) {
           ${i.faixa ? `<span><b>Faixa:</b> ${esc(i.faixa)}</span>` : ""}
           ${i.fonte ? `<span><b>Fonte:</b> ${esc(i.fonte)}</span>` : ""}
         </div>
+        ${acao(i.acao, st(i.status) === "critico")}
       </div>`).join("");
     return `
       <section class="trilha" aria-label="${esc(t.nome)}">
@@ -148,7 +163,7 @@ function render(d) {
 
   const saude = (d.saude || []).map(a => `
     <tr><td><b>${esc(a.id)}</b> ${esc(a.nome)}</td><td>${esc(a.processo || "")}</td>
-    <td class="num">${esc(a.ultimo_txt || "—")}</td><td>${pill(a.status)}</td><td>${esc(a.nota || "")}</td></tr>`).join("");
+    <td class="num">${esc(a.ultimo_txt || "—")}</td><td>${pill(a.status)}</td><td>${esc(a.nota || "")}${acao(a.acao, ["critico","atencao","sem_dado"].includes(st(a.status)))}</td></tr>`).join("");
 
   const s = window.DADOS.serie;
   const serie = s ? `<h2 class="sec">Evolução desde 09/09</h2>
@@ -163,6 +178,7 @@ function render(d) {
       <div>
         <h2>Termômetro geral ${pill(d.geral?.status)}</h2>
         <p class="frase">${esc(d.geral?.frase || "")}</p>
+        ${(d.geral?.foco || []).length ? `<div class="foco"><h3>O que fazer essa semana</h3><ul>${d.geral.foco.map(f => `<li>${esc(f)}</li>`).join("")}</ul></div>` : ""}
         <div class="escala">
           <span><i style="background:var(--ok)"></i>Saudável: dentro da faixa</span>
           <span><i style="background:var(--at)"></i>Atenção: perto do limite</span>

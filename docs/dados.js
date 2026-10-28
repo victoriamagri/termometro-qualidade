@@ -1,13 +1,19 @@
 // Dados do Termômetro da Qualidade. Atualizar toda semana: acrescentar a semana nova no topo de SEMANAS
 // e a linha nova em SERIE. Faixas provisórias (calibradas em 20/10/2026 com a série desde 09/09).
+// geral.foco = bullets "o que fazer essa semana". acao = {texto, dono, prazo} em indicador crítico
+// e em agente em atenção/sem dado; sem acao, a página mostra "sem dono e sem prazo".
 window.DADOS = {
   semanas: [
     {
       periodo: {inicio: "2026-10-14", fim: "2026-10-20"},
-      gerado_em: "2026-10-20",
+      gerado_em: "2026-10-28",
       geral: {
-        status: "critico",
-        frase: "Volume e aplicação de ocorrências estão saudáveis, mas a Fiscalização acendeu dois alertas: a sexta, 16/10, passou sem nenhuma ocorrência criada, e há 85 cards parados há mais de 30 dias sem decisão. Avaliações e Reclame Aqui estão em atenção, perto do limite das faixas."
+        status: "atencao",
+        frase: "Nenhuma trilha está crítica. A Fiscalização está saudável: as ocorrências entraram e foram aplicadas em dia, e nenhum card está aberto há mais de 30 dias. Avaliações e Reclame Aqui estão em atenção, perto do limite das faixas.",
+        foco: [
+          "Avaliações: a nota média do Airbnb na semana ficou em 4,77, abaixo da meta de 4,80.",
+          "Reclame Aqui: a nota estimada da marca está em 7,15. Faltam 0,15 para cair da faixa Bom para Regular."
+        ]
       },
       trilhas: [
         {
@@ -44,8 +50,8 @@ window.DADOS = {
           ]
         },
         {
-          k: "Trilha 3", nome: "Fiscalização", status: "critico",
-          frase: "O objetivo é enviar e aplicar ocorrências. Nesta semana as fontes mandaram bem e a aplicação está em dia; os alertas são um dia útil sem nenhuma entrada e cards antigos que nunca tiveram decisão.",
+          k: "Trilha 3", nome: "Fiscalização", status: "ok",
+          frase: "O objetivo é enviar e aplicar ocorrências. Nesta semana as fontes mandaram bem, a aplicação está em dia e nenhum card está aberto há mais de 30 dias. A sexta sem ocorrência foi reposta no domingo.",
           indicadores: [
             {nome: "Ocorrências válidas recebidas na semana", valor_txt: "79", anterior_txt: "42", status: "ok",
              explicacao: "Comentários mandaram 28, Gestor Regional 19, Treinamento 15 e Implantação 14. Desde 09/09, o normal fica entre 42 e 109 por semana.",
@@ -56,14 +62,14 @@ window.DADOS = {
             {nome: "Fontes principais que mandaram ocorrência", valor_txt: "3 de 3", status: "ok",
              explicacao: "Comentários, Implantação e Gestor Regional (vistoria) mandaram ocorrência na semana. Desde 09/09 nenhuma das três zerou.",
              faixa: "vermelho se alguma zerar na semana · amarelo se Comentários mandar menos de 5", fonte: "Lovable de ocorrências"},
-            {nome: "Dias úteis sem nenhuma ocorrência criada", valor_txt: "1", status: "critico",
-             explicacao: "Na sexta, 16/10, não entrou nenhuma ocorrência, de nenhuma fonte. É o único dia útil zerado em 12 semanas. Falta confirmar se foi folga ou falha.",
-             faixa: "verde nenhum · vermelho algum", fonte: "Lovable de ocorrências"},
+            {nome: "Dias úteis sem nenhuma ocorrência criada", valor_txt: "1", status: "ok",
+             explicacao: "Na sexta, 16/10, não entrou nenhuma ocorrência. Não foi falha: o time estava em processos prioritários e os agentes ainda estavam sendo finalizados. As ocorrências foram repostas no domingo, 18/10, com 6 cards de Comentários e de Treinamento.",
+             faixa: "verde nenhum, ou dia reposto · vermelho dia sem ocorrência e sem reposição", fonte: "Lovable de ocorrências"},
             {nome: "Ocorrências decididas que viraram pontuação", valor_txt: "51%", anterior_txt: "25%", status: "ok",
              explicacao: "Das ocorrências decididas na semana, 48 pontuaram e 46 tiveram justificativa válida. No período desde agosto, a média é 40%.",
              faixa: "verde ≥ 40% · amarelo 25% a 39% · vermelho < 25%", fonte: "Lovable de ocorrências · histórico de etapas"},
-            {nome: "Cards parados há mais de 30 dias sem decisão", valor_txt: "85", status: "critico",
-             explicacao: "Estão em Aplicação de pontuação desde julho: 81 da régua v1, todos com pontos, e 36 já com multa vinculada. Parece o fechamento de julho que ficou sem baixa no kanban na troca de régua. A confirmar.",
+            {nome: "Cards abertos há mais de 30 dias sem decisão", valor_txt: "0", status: "ok",
+             explicacao: "Em 20/10, nenhum card em Nova Ocorrência, Primeiro Contato ou Segundo Contato tinha mais de 30 dias. Os 85 cards da coluna Aplicação de pontuação, de julho, não contam como abertos: essa é a etapa final da régua v1, e todos já têm a pontuação aplicada.",
              faixa: "verde nenhum · amarelo 1 a 10 · vermelho mais de 10", fonte: "Lovable de ocorrências"},
             {nome: "Franquias perto da multa e já no limite", valor_txt: "14 · 3", anterior_txt: "16 · 0", status: "info",
              explicacao: "14 franquias estão a 4 pontos ou menos do limite. Três passaram do limite nesta semana e aguardam o registro da multa.",
@@ -78,7 +84,7 @@ window.DADOS = {
           frase: "As automações principais rodaram nos últimos dias. Algumas fontes de ocorrência que chegam em lote estão sem card há mais de uma semana.",
           indicadores: [
             {nome: "Agentes acompanhados com registro nos últimos 3 dias", valor_txt: "6 de 8", status: "atencao",
-             explicacao: "O detalhe de cada agente está na tabela Saúde das automações.",
+             explicacao: "Os dois sem registro são o A8 e o A9. O A9 já foi resolvido. O A8 está em conferência. O detalhe está na tabela Saúde das automações.",
              faixa: "verde todos · amarelo 1 a 2 sem registro · vermelho 3 ou mais", fonte: "Lovables de ocorrências e de comentários"},
             {nome: "Processos da arquitetura automáticos ou mistos", valor_txt: "24 de 49", status: "info",
              explicacao: "13 processos são automáticos, 11 são mistos e 25 ainda são manuais. A IA participa de 25 dos 49. Dos 17 agentes, 12 estão no ar, 1 em validação e 4 em desenho.",
@@ -88,16 +94,18 @@ window.DADOS = {
       ],
       saude: [
         {id: "A2", nome: "Reclame Aqui → card", processo: "4.1", ultimo_txt: "20/10", status: "ok", nota: "5 cards criados na semana."},
-        {id: "A8", nome: "Ocorrências de realocação e cancelamento", processo: "5.1", ultimo_txt: "08/10", status: "atencao", nota: "Só 3 cards desde o início. Pode ser falta de caso, não falha."},
-        {id: "A9", nome: "Ocorrências de check-in", processo: "5.1", ultimo_txt: "—", status: "sem_dado", nota: "A origem check-in não aparece no banco. Pode estar entrando como Atendimento ao Hóspede (último card em 15/10)."},
+        {id: "A8", nome: "Ocorrências de realocação e cancelamento", processo: "5.1", ultimo_txt: "08/10", status: "atencao", nota: "Só 3 cards desde o início. O time de Atendimento ao Hóspede já ajustou o envio.",
+         acao: {texto: "Conferir pela Caça às Ocorrências se ficaram casos de realocação e cancelamento sem card.", dono: "Victoria", prazo: "2026-10-30"}},
+        {id: "A9", nome: "Ocorrências de check-in", processo: "5.1", ultimo_txt: "15/10", status: "ok", nota: "Resolvido. Os casos de check-in entravam como Atendimento ao Hóspede. O time de Atendimento ao Hóspede corrigiu a falha, e as ocorrências que faltavam foram recuperadas pela Caça às Ocorrências."},
         {id: "A11", nome: "Abertura de chamado na Central de Atividades", processo: "5.4", ultimo_txt: "19/10", status: "ok", nota: "61 cards com chamado entraram em Primeiro Contato na semana."},
         {id: "A12", nome: "Bot do chat do Sapron", processo: "5.5 e 5.6", ultimo_txt: "20/10", status: "ok", nota: "81 sugestões na semana, ainda em modo sombra. 9 aguardam revisão."},
         {id: "A13", nome: "Motor de acúmulo de pontos", processo: "6.1 e 6.2", ultimo_txt: "contínuo", status: "ok", nota: "Calculando iminência e limite normalmente."},
         {id: "A14", nome: "Alerta de multas no Slack", processo: "6.3", ultimo_txt: "14/10", status: "ok", nota: "Só dispara com multa nova; a última foi registrada em 14/10."},
-        {id: "—", nome: "Ocorrências de Comentários e de Gestor Regional", processo: "5.1", ultimo_txt: "20/10", status: "ok", nota: "Cards entrando todo dia útil, menos 16/10."}
+        {id: "—", nome: "Ocorrências de Comentários e de Gestor Regional", processo: "5.1", ultimo_txt: "20/10", status: "ok", nota: "Cards entrando todo dia útil. A sexta, 16/10, foi reposta no domingo, 18/10."}
       ],
       ressalvas: [
         "As faixas são provisórias. Foram calibradas com a série de 09/09 a 20/10, depois da troca da régua de ocorrências.",
+        "Todo indicador crítico e todo agente em atenção ou sem dado precisa de uma próxima ação com dono e prazo. Quando ela não existe, o termômetro mostra o aviso \"sem dono e sem prazo definidos\".",
         "Na Fiscalização, volume alto é bom sinal. O crítico é a ocorrência deixar de entrar ou de ser aplicada, porque indica que um processo parou de enxergar a falha.",
         "As avaliações são contadas pela data de checkout. A semana mais recente sempre aparece menor e cresce nos dias seguintes.",
         "O prazo de 48 horas é da franquia para responder. Saber se ela respondeu no prazo depende do chat da Central de Atividades do Sapron, que ainda não entra no termômetro.",
